@@ -7,6 +7,7 @@ STOCK = "TSLA"
 COMPANY_NAME = "Tesla Inc"
 NOTIFICATION_BASELINE = 2
 EMAIL_SMTP = "smtp.gmail.com"
+ARTICLE_COUNT = 3
 
 
 def get_stock_change():
@@ -18,8 +19,7 @@ def get_stock_change():
         "apikey": os.environ.get("AV_API_KEY")
     }
 
-    response = requests.get("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=IBM&apikey=demo",
-                            params=AV_parameters)
+    response = requests.get("https://www.alphavantage.co/query", params=AV_parameters)
     response.raise_for_status()
     AV_data = response.json()["Time Series (Daily)"]
     stock_prices = [data for (key, data) in AV_data.items()]
@@ -35,6 +35,7 @@ def get_news():
     news_parameters = {
         "apiKey": os.environ.get("NEWS_API_KEY"),
         "q": COMPANY_NAME,
+        "language": "en",
         "sortBy": "publishedAt",
     }
 
@@ -52,20 +53,17 @@ if abs(get_stock_change()) >= NOTIFICATION_BASELINE:
         stock_format = "🔺 " + str(abs(round(get_stock_change(), 3))) + "%"
 
     news = get_news()
-    article1 = news[0]
-    article2 = news[1]
-    article3 = news[2]
+    articles = news[0:ARTICLE_COUNT]
+    mail_contents = f"Subject: {COMPANY_NAME} ({STOCK}): {stock_format}\n\n"
+    for article in articles:
+        mail_contents += f"{article['title']}\n- {article['description']}\n{article['url']}\n\n"
 
     from_email = os.environ.get("FROM_EMAIL")
     to_email = os.environ.get("TO_EMAIL")
     password = os.environ.get("PASSWORD")
 
     with smtplib.SMTP(EMAIL_SMTP, 587) as connection:
-        mail_contents = f"Subject: {COMPANY_NAME} ({STOCK}): {stock_format}\n\n" \
-                        f"{article1['title']}\n- {article1['description']}\n\n" \
-                        f"{article2['title']}\n- {article2['description']}\n\n" \
-                        f"{article3['title']}\n- {article3['description']}\n\n".encode('utf-8')
         connection.starttls()
         connection.login(from_email, password)
         connection.sendmail(from_addr=from_email, to_addrs=to_email,
-                            msg=mail_contents)
+                            msg=mail_contents.encode('utf-8'))
