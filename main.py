@@ -26,7 +26,6 @@ def get_stock_change():
 
     day1_prior_price = float(stock_prices[0]["4. close"])
     day2_prior_price = float(stock_prices[1]["4. close"])
-    # 296.0700 288.0900
 
     percentage_change = ((day1_prior_price - day2_prior_price) / day2_prior_price) * 100
     return percentage_change
@@ -70,15 +69,3 @@ if abs(get_stock_change()) >= NOTIFICATION_BASELINE:
         connection.login(from_email, password)
         connection.sendmail(from_addr=from_email, to_addrs=to_email,
                             msg=mail_contents)
-
-
-# Optional: Format the SMS message like this:
-"""
-TSLA: 🔺2%
-Headline: Were Hedge Funds Right About Piling Into Tesla Inc. (TSLA)?. 
-Brief: We at Insider Monkey have gone over 821 13F filings that hedge funds and prominent investors are required to file by the SEC The 13F filings show the funds' and investors' portfolio positions as of March 31st, near the height of the coronavirus market crash.
-or
-"TSLA: 🔻5%
-Headline: Were Hedge Funds Right About Piling Into Tesla Inc. (TSLA)?. 
-Brief: We at Insider Monkey have gone over 821 13F filings that hedge funds and prominent investors are required to file by the SEC The 13F filings show the funds' and investors' portfolio positions as of March 31st, near the height of the coronavirus market crash.
-"""
